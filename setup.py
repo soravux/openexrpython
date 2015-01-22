@@ -19,7 +19,7 @@ setup(name='OpenEXR',
               ['OpenEXR.cpp'],
               include_dirs=['/usr/include/OpenEXR', '/usr/local/include/OpenEXR', '/opt/local/include/OpenEXR'],
               library_dirs=['/usr/local/lib', '/opt/local/lib'],
-              libraries=['Iex', 'Half', 'Imath', 'IlmImf', 'z'],
+              libraries=['Iex-2_2', 'Half', 'Imath-2_2', 'IlmImf-2_2', 'zlib'],
               extra_compile_args=['-g', '-DVERSION="%s"' % version])
   ],
   py_modules=['Imath'],

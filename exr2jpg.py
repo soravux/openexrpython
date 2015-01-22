@@ -22,5 +22,5 @@ def main(exrfile, jpgfile):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print "usage: exr2jpg <exrfile> <jpgfile>"
+        print("usage: exr2jpg <exrfile> <jpgfile>")
     main(sys.argv[1], sys.argv[2])

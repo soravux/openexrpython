@@ -1,7 +1,7 @@
 import unittest
 import random
 import array
-import StringIO
+import io
 
 import Imath
 import OpenEXR
@@ -43,7 +43,7 @@ class TestDirected(unittest.TestCase):
 
             oexr0 = self.load_red("out0.exr")
             oexr1 = self.load_red("out1.exr")
-            self.assert_(oexr0 == oexr1)
+            self.assertTrue(oexr0 == oexr1)
 
     def test_write_mchannels(self):
         """
@@ -82,7 +82,7 @@ class TestDirected(unittest.TestCase):
         cl = sorted(oexr.header()['channels'].keys())
         a = [oexr.channel(c) for c in cl]
         b = oexr.channels(cl)
-        self.assert_(a == b)
+        self.assertTrue(a == b)
 
     def test_one(self):
         oexr = OpenEXR.InputFile("GoldenGate.exr")
@@ -95,11 +95,11 @@ class TestDirected(unittest.TestCase):
         float_size = len(oexr.channel('R', Imath.PixelType(Imath.PixelType.FLOAT)))
         uint_size = len(oexr.channel('R', Imath.PixelType(Imath.PixelType.UINT)))
 
-        self.assert_(default_size in [ half_size, float_size, uint_size])
-        self.assert_(float_size == uint_size)
-        self.assert_((float_size / 2) == half_size)
+        self.assertTrue(default_size in [ half_size, float_size, uint_size])
+        self.assertTrue(float_size == uint_size)
+        self.assertTrue((float_size / 2) == half_size)
 
-        self.assert_(len(oexr.channel('R', pixel_type = self.FLOAT, scanLine1 = 10, scanLine2 = 10)) == (4 * (first_header['dataWindow'].max.x + 1)))
+        self.assertTrue(len(oexr.channel('R', pixel_type = self.FLOAT, scanLine1 = 10, scanLine2 = 10)) == (4 * (first_header['dataWindow'].max.x + 1)))
 
         data = " " * (4 * 100 * 100)
         h = OpenEXR.Header(100,100)
@@ -108,7 +108,7 @@ class TestDirected(unittest.TestCase):
         x.close()
 
     def test_types(self):
-        for original in [ [0,0,0], range(10), range(100,200,3) ]:
+        for original in [ [0,0,0], list(range(10)), list(range(100,200,3)) ]:
             for code,t in [ ('I', self.UINT), ('f', self.FLOAT) ]:
                 data = array.array(code, original).tostring()
                 hdr = OpenEXR.Header(len(original), 1)
@@ -120,11 +120,11 @@ class TestDirected(unittest.TestCase):
 
                 xin = OpenEXR.InputFile("out.exr")
                 # Implicit type
-                self.assert_(array.array(code, xin.channel('L')).tolist() == original)
+                self.assertTrue(array.array(code, xin.channel('L')).tolist() == original)
                 # Explicit type
-                self.assert_(array.array(code, xin.channel('L', t)).tolist() == original)
+                self.assertTrue(array.array(code, xin.channel('L', t)).tolist() == original)
                 # Explicit type as kwarg
-                self.assert_(array.array(code, xin.channel('L', pixel_type = t)).tolist() == original)
+                self.assertTrue(array.array(code, xin.channel('L', pixel_type = t)).tolist() == original)
 
     def test_conversion(self):
         """ Write an image as UINT, read as FLOAT.  And the reverse. """
@@ -138,7 +138,7 @@ class TestDirected(unittest.TestCase):
             x.close()
 
             xin = OpenEXR.InputFile("out.exr")
-            self.assert_(array.array(to_code, xin.channel('L', codemap[to_code])).tolist() == original)
+            self.assertTrue(array.array(to_code, xin.channel('L', codemap[to_code])).tolist() == original)
 
     def test_leak(self):
         hdr = OpenEXR.Header(10, 10)
@@ -154,7 +154,7 @@ class TestDirected(unittest.TestCase):
             h = oexr.header()
 
     def test_fileobject(self):
-        f = StringIO.StringIO()
+        f = io.StringIO()
         (w, h) = (640, 480)
         data = array.array('f', [ 0 for x in range(w * h) ]).tostring()
         hdr = OpenEXR.Header(w,h)
