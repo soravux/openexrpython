@@ -456,7 +456,7 @@ static PyObject *dict_from_header(Header h)
             Py_DECREF(ptargs[1]);
         } else if (const PreviewImageAttribute *pia = dynamic_cast <const PreviewImageAttribute *> (a)) {
             int size = pia->value().width() * pia->value().height() * 4;
-            PyObject *args = Py_BuildValue("iis#", pia->value().width(), pia->value().height(), (char*)pia->value().pixels(), size);
+            PyObject *args = Py_BuildValue("iiy#", pia->value().width(), pia->value().height(), (char*)pia->value().pixels(), size);
             ob = PyObject_CallObject(pPIFunc, args);
             Py_DECREF(args);
         } else if (const LineOrderAttribute *ta = dynamic_cast <const LineOrderAttribute *> (a)) {
@@ -570,8 +570,8 @@ static PyObject *isComplete(PyObject *self, PyObject *args)
 /* Method table */
 static PyMethodDef InputFile_methods[] = {
   {"header", inheader, METH_VARARGS},
-  {"channel", (PyCFunction)channel, METH_KEYWORDS},
-  {"channels", (PyCFunction)channels, METH_KEYWORDS},
+  {"channel", (PyCFunction)channel, METH_VARARGS | METH_KEYWORDS},
+  {"channels", (PyCFunction)channels, METH_VARARGS | METH_KEYWORDS},
   {"close", inclose, METH_VARARGS},
   {"isComplete", isComplete, METH_VARARGS},
   {NULL, NULL},
@@ -601,7 +601,8 @@ InputFile_Repr(PyObject *self)
 
 
     sprintf(buf, "InputFile represented");
-    return PyBytes_FromString(buf);
+    //return PyBytes_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 static PyTypeObject InputFile_Type = {
@@ -611,7 +612,7 @@ static PyTypeObject InputFile_Type = {
     0,
     (destructor)InputFile_dealloc,
     0,
-    (getattrfunc)PyObject_GenericGetAttr, //InputFile_GetAttr,
+    0, //(getattrfunc)PyObject_GenericGetAttr, //InputFile_GetAttr,
     0,
     0,
     (reprfunc)InputFile_Repr,
@@ -631,12 +632,13 @@ static PyTypeObject InputFile_Type = {
 
     "OpenEXR input file object", //
 
-    /*0,
     0,
     0,
     0,
     0,
-    0,*/
+    0,
+    0,
+    InputFile_methods
     // methods
 
     /* the rest are NULLs */
@@ -654,6 +656,8 @@ int makeInputFile(PyObject *self, PyObject *args, PyObject *kwds)
           object->fo = NULL;
           object->istream = NULL;
       } else {
+          printf("CECI EST UN PROBLEME PAS ENCORE PORTE\n");
+          printf("deuxieme\n");
           object->fo = fo;
           Py_INCREF(fo);
           object->istream = new C_IStream(fo);
@@ -812,7 +816,8 @@ OutputFile_Repr(PyObject *self)
     char buf[50];
 
     sprintf(buf, "OutputFile represented");
-    return PyBytes_FromString(buf);
+    //return PyBytes_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 static PyTypeObject OutputFile_Type = {
@@ -1043,14 +1048,15 @@ static PyMethodDef methods[] = {
 
 static PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    "openexr",
+    "OpenEXR",
     "OpenEXR module.",
     -1,
     methods,
     NULL, NULL, NULL, NULL
 };
 
-extern "C" void PyInit_OpenEXR()
+
+extern "C" PyMODINIT_FUNC PyInit_OpenEXR()
 {
     PyObject *m, *d, *item;
 
@@ -1058,9 +1064,10 @@ extern "C" void PyInit_OpenEXR()
 
     //m = Py_InitModule("OpenEXR", methods);
     m = PyModule_Create(&module);
+
     d = PyModule_GetDict(m);
 
-    pModuleImath = PyImport_Import(item= PyBytes_FromString("Imath")); Py_DECREF(item);
+    pModuleImath = PyImport_ImportModule("Imath"); // PyImport_Import(item= PyBytes_FromString(".Imath")); Py_DECREF(item);
 
     /* initialize module variables/constants */
     InputFile_Type.tp_new = PyType_GenericNew;
@@ -1068,9 +1075,9 @@ extern "C" void PyInit_OpenEXR()
     OutputFile_Type.tp_new = PyType_GenericNew;
     OutputFile_Type.tp_init = makeOutputFile;
     if (PyType_Ready(&InputFile_Type) != 0)
-        return;
+        return NULL;
     if (PyType_Ready(&OutputFile_Type) != 0)
-        return;
+        return NULL;
     PyModule_AddObject(m, "InputFile", (PyObject *)&InputFile_Type);
     PyModule_AddObject(m, "OutputFile", (PyObject *)&OutputFile_Type);
 
@@ -1086,4 +1093,6 @@ extern "C" void PyInit_OpenEXR()
     PyDict_SetItemString(d, "HALF", item= PyLong_FromLong(HALF)); Py_DECREF(item);
     PyDict_SetItemString(d, "FLOAT", item= PyLong_FromLong(FLOAT)); Py_DECREF(item);
     PyDict_SetItemString(d, "__version__", item= PyBytes_FromString(PY_VERSION)); Py_DECREF(item);
+
+    return m;
 }
