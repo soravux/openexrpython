@@ -1050,7 +1050,7 @@ static PyModuleDef module = {
     NULL, NULL, NULL, NULL
 };
 
-extern "C" void initOpenEXR()
+extern "C" void PyInit_OpenEXR()
 {
     PyObject *m, *d, *item;
 
