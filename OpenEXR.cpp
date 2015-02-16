@@ -612,7 +612,7 @@ static PyTypeObject InputFile_Type = {
     0,
     (destructor)InputFile_dealloc,
     0,
-    0, //(getattrfunc)PyObject_GenericGetAttr, //InputFile_GetAttr,
+    0, //InputFile_GetAttr,
     0,
     0,
     (reprfunc)InputFile_Repr,
@@ -655,9 +655,12 @@ int makeInputFile(PyObject *self, PyObject *args, PyObject *kwds)
           filename = PyBytes_AsString(fo);
           object->fo = NULL;
           object->istream = NULL;
+      } else if (PyUnicode_Check(fo)) {
+          filename = PyUnicode_AsUTF8(fo);
+          object->fo = NULL;
+          object->istream = NULL;
       } else {
-          printf("CECI EST UN PROBLEME PAS ENCORE PORTE\n");
-          printf("deuxieme\n");
+          // TODO: not working
           object->fo = fo;
           Py_INCREF(fo);
           object->istream = new C_IStream(fo);
@@ -846,6 +849,15 @@ static PyTypeObject OutputFile_Type = {
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 
     "OpenEXR Output file object",
+
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+    OutputFile_methods
 
     /* the rest are NULLs */
 };
