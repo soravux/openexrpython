@@ -876,6 +876,10 @@ int makeOutputFile(PyObject *self, PyObject *args, PyObject *kwds)
           filename = PyBytes_AsString(fo);
           object->fo = NULL;
           object->ostream = NULL;
+      } else if (PyUnicode_Check(fo)) {
+          filename = PyUnicode_AsUTF8(fo);
+          object->fo = NULL;
+          object->ostream = NULL;
       } else {
           object->fo = fo;
           Py_INCREF(fo);
