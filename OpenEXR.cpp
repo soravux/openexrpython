@@ -830,7 +830,7 @@ static PyTypeObject OutputFile_Type = {
     0,
     (destructor)OutputFile_dealloc,
     0,
-    (getattrfunc)PyObject_GenericGetAttr,//OutputFile_GetAttr,
+    0, //OutputFile_GetAttr,
     0,
     0,
     (reprfunc)OutputFile_Repr,
@@ -881,6 +881,7 @@ int makeOutputFile(PyObject *self, PyObject *args, PyObject *kwds)
           object->fo = NULL;
           object->ostream = NULL;
       } else {
+          printf("Using a non-ported function!\n");
           object->fo = fo;
           Py_INCREF(fo);
           object->ostream = new C_OStream(fo);
@@ -905,41 +906,41 @@ int makeOutputFile(PyObject *self, PyObject *args, PyObject *kwds)
 
     while (PyDict_Next(header_dict, &pos, &key, &value)) {
         if (PyFloat_Check(value)) {
-            header.insert(PyBytes_AsString(key), FloatAttribute(PyFloat_AsDouble(value)));
+            header.insert(PyUnicode_AsUTF8(key), FloatAttribute(PyFloat_AsDouble(value)));
         }
         else if (PyLong_Check(value)) {
-            header.insert(PyBytes_AsString(key), IntAttribute(PyLong_AsLong(value)));
-        } else if (PyBytes_Check(value)) {
-            header.insert(PyBytes_AsString(key), StringAttribute(PyBytes_AsString(value)));
+            header.insert(PyUnicode_AsUTF8(key), IntAttribute(PyLong_AsLong(value)));
+        } else if (PyUnicode_Check(value)) { // TODO: Was PyBytes_Check. Confirm the change is ok.
+            header.insert(PyUnicode_AsUTF8(key), StringAttribute(PyUnicode_AsUTF8(value)));
         } else if (PyObject_IsInstance(value, pB2i)) {
             Box2i box(V2i(PyLong_AsLong(PyObject_StealAttrString(PyObject_StealAttrString(value, "min"), "x")),
                           PyLong_AsLong(PyObject_StealAttrString(PyObject_StealAttrString(value, "min"), "y"))),
                       V2i(PyLong_AsLong(PyObject_StealAttrString(PyObject_StealAttrString(value, "max"), "x")),
                           PyLong_AsLong(PyObject_StealAttrString(PyObject_StealAttrString(value, "max"), "y"))));
-            header.insert(PyBytes_AsString(key), Box2iAttribute(box));
+            header.insert(PyUnicode_AsUTF8(key), Box2iAttribute(box));
         } else if (PyObject_IsInstance(value, pB2f)) {
             Box2f box(V2f(PyFloat_AsDouble(PyObject_StealAttrString(PyObject_StealAttrString(value, "min"), "x")),
                           PyFloat_AsDouble(PyObject_StealAttrString(PyObject_StealAttrString(value, "min"), "y"))),
                       V2f(PyFloat_AsDouble(PyObject_StealAttrString(PyObject_StealAttrString(value, "max"), "x")),
                           PyFloat_AsDouble(PyObject_StealAttrString(PyObject_StealAttrString(value, "max"), "y"))));
-            header.insert(PyBytes_AsString(key), Box2fAttribute(box));
+            header.insert(PyUnicode_AsUTF8(key), Box2fAttribute(box));
         } else if (PyObject_IsInstance(value, pPI)) {
             PreviewImage pi(PyLong_AsLong(PyObject_StealAttrString(value, "width")),
                             PyLong_AsLong(PyObject_StealAttrString(value, "height")),
-                            (Imf::PreviewRgba *)PyBytes_AsString(PyObject_StealAttrString(value, "pixels")));
-            header.insert(PyBytes_AsString(key), PreviewImageAttribute(pi));
+                            (Imf::PreviewRgba *)PyUnicode_AsUTF8(PyObject_StealAttrString(value, "pixels")));
+            header.insert(PyUnicode_AsUTF8(key), PreviewImageAttribute(pi));
         } else if (PyObject_IsInstance(value, pV2f)) {
             V2f v(PyFloat_AsDouble(PyObject_StealAttrString(value, "x")), PyFloat_AsDouble(PyObject_StealAttrString(value, "y")));
 
-            header.insert(PyBytes_AsString(key), V2fAttribute(v));
+            header.insert(PyUnicode_AsUTF8(key), V2fAttribute(v));
         } else if (PyObject_IsInstance(value, pLO)) {
             LineOrder i = (LineOrder)PyLong_AsLong(PyObject_StealAttrString(value, "v"));
 
-            header.insert(PyBytes_AsString(key), LineOrderAttribute(i));
+            header.insert(PyUnicode_AsUTF8(key), LineOrderAttribute(i));
         } else if (PyObject_IsInstance(value, pCOMP)) {
             Compression i = (Compression)PyLong_AsLong(PyObject_StealAttrString(value, "v"));
 
-            header.insert(PyBytes_AsString(key), CompressionAttribute(i));
+            header.insert(PyUnicode_AsUTF8(key), CompressionAttribute(i));
         } else if (PyObject_IsInstance(value, pCH)) {
             V2f red(PyFloat_AsDouble(PyObject_StealAttrString(PyObject_StealAttrString(value, "red"), "x")),
                     PyFloat_AsDouble(PyObject_StealAttrString(PyObject_StealAttrString(value, "red"), "y")));
@@ -950,14 +951,14 @@ int makeOutputFile(PyObject *self, PyObject *args, PyObject *kwds)
             V2f white(PyFloat_AsDouble(PyObject_StealAttrString(PyObject_StealAttrString(value, "white"), "x")),
                       PyFloat_AsDouble(PyObject_StealAttrString(PyObject_StealAttrString(value, "white"), "y")));
             Chromaticities c(red, green, blue, white);
-            header.insert(PyBytes_AsString(key), ChromaticitiesAttribute(c));
+            header.insert(PyUnicode_AsUTF8(key), ChromaticitiesAttribute(c));
         } else if (PyObject_IsInstance(value, pTD)) {
             TileDescription td(PyLong_AsLong(PyObject_StealAttrString(value, "xSize")),
                                PyLong_AsLong(PyObject_StealAttrString(value, "ySize")),
                                (Imf::LevelMode)PyLong_AsLong(PyObject_StealAttrString(PyObject_StealAttrString(value, "mode"), "v")),
                                (Imf::LevelRoundingMode)PyLong_AsLong(PyObject_StealAttrString(PyObject_StealAttrString(value, "roundingMode"), "v"))
                                );
-            header.insert(PyBytes_AsString(key), TileDescriptionAttribute(td));
+            header.insert(PyUnicode_AsUTF8(key), TileDescriptionAttribute(td));
         } else if (PyDict_Check(value)) {
             PyObject *key2, *value2;
             Py_ssize_t pos2 = 0;
@@ -965,9 +966,9 @@ int makeOutputFile(PyObject *self, PyObject *args, PyObject *kwds)
             while (PyDict_Next(value, &pos2, &key2, &value2)) {
                 if (0)
                     printf("%s -> %s\n",
-                        PyBytes_AsString(key2),
-                        PyBytes_AsString(PyObject_Str(PyObject_Type(value2))));
-                header.channels().insert(PyBytes_AsString(key2),
+                        PyUnicode_AsUTF8(key2),
+                        PyUnicode_AsUTF8(PyObject_Str(PyObject_Type(value2))));
+                header.channels().insert(PyUnicode_AsUTF8(key2),
                                          Channel(PixelType(PyLong_AsLong(PyObject_StealAttrString(PyObject_StealAttrString(value2, "type"), "v"))),
                                                  PyLong_AsLong(PyObject_StealAttrString(value2, "xSampling")),
                                                  PyLong_AsLong(PyObject_StealAttrString(value2, "ySampling"))));
@@ -976,11 +977,11 @@ int makeOutputFile(PyObject *self, PyObject *args, PyObject *kwds)
         } else if (PyList_Check(value)) {
             StringVector sv(PyList_Size(value));
             for (size_t i = 0; i < sv.size(); i++)
-                sv[i] = PyBytes_AsString(PyList_GetItem(value, i));
-            header.insert(PyBytes_AsString(key), StringVectorAttribute(sv));
+                sv[i] = PyUnicode_AsUTF8(PyList_GetItem(value, i));
+            header.insert(PyUnicode_AsUTF8(key), StringVectorAttribute(sv));
 #endif
         } else {
-            printf("XXX - unknown attribute: %s\n", PyBytes_AsString(PyObject_Str(key)));
+            printf("XXX - unknown attribute: %s\n", PyUnicode_AsUTF8(PyObject_Str(key)));
         }
     }
 
