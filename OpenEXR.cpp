@@ -719,7 +719,7 @@ static PyObject *outwrite(PyObject *self, PyObject *args)
     for (ChannelList::ConstIterator i = channels.begin();
          i != channels.end();
          ++i) {
-        PyObject *channel_spec = PyDict_GetItem(pixeldata, PyBytes_FromString(i.name()));
+        PyObject *channel_spec = PyDict_GetItem(pixeldata, PyUnicode_FromString(i.name()));
         if (channel_spec != NULL) {
             Imf::PixelType pt = i.channel().type;
             int typeSize = 4;
