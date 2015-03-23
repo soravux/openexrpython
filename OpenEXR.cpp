@@ -704,7 +704,6 @@ static PyObject *outwrite(PyObject *self, PyObject *args)
 {
     OutputFile *file = &((OutputFileC *)self)->o;
 
-    // long height = PyLong_AsLong(PyTuple_GetItem(args, 1));
     Box2i dw = file->header().dataWindow();
     int width = dw.max.x - dw.min.x + 1;
     int height = dw.max.y - dw.min.y + 1;
@@ -739,7 +738,7 @@ static PyObject *outwrite(PyObject *self, PyObject *args)
             int yStride = typeSize * width;
 
             if (!PyBytes_Check(channel_spec)) {
-                PyErr_Format(PyExc_TypeError, "Data for channel '%s' must be a string", i.name());
+                PyErr_Format(PyExc_TypeError, "Data for channel '%s' must be a byte string", i.name());
                 return NULL;
             }
             if (PyBytes_Size(channel_spec) != (height * yStride)) {
